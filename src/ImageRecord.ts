@@ -3,3 +3,8 @@ interface ImageRecord {
   name: string
   file: Blob
 }
+
+interface UploadedImage {
+  name: string
+  file: Blob
+}
