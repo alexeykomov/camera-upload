@@ -1,0 +1,13 @@
+{
+	"compilerOptions": {
+		"module": "es2015",
+		"target": "es2017",
+		"strict": true,
+		"moduleResolution": "node",
+		"sourceMap": true,
+		"noUnusedLocals": true,
+		"noImplicitReturns": true,
+		"forceConsistentCasingInFileNames": true,
+		"suppressImplicitAnyIndexErrors": true
+	}
+}

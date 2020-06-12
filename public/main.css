@@ -1,0 +1,39 @@
+.html {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.main-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  background-color: #64b5f6;
+}
+
+.preview-container {
+  display: flex;
+  flex: 1;
+  overflow: auto;
+  justify-content: center;
+  align-items: center;
+}
+
+.preview {
+  max-width: 800px;
+  width: 80%;
+  object-fit: contain;
+}
+
+.upload-form {
+  display: flex;
+  height: 100px;
+  background-color: #0d47a1;
+}
