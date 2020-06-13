@@ -6,13 +6,13 @@ import {
 import { blobToBuffer, bufferToBlob } from './BlobToTypedArrayConverter';
 
 export class Storage {
-  public static VERSION = 6;
+  public static VERSION = 7;
   public static STORE_NAME = `images${Storage.VERSION}`;
   public static KEY_PATH = 'category';
   public static DB_NAME = 'documentsDb';
   private db: IDBDatabase | null = null;
 
-  constructor(db: IDBDatabase) {
+  private constructor(db: IDBDatabase) {
     this.db = db;
   }
 
@@ -42,12 +42,12 @@ export class Storage {
         const objectStore = db.createObjectStore(Storage.STORE_NAME);
 
         objectStore.createIndex('name', 'name', { unique: false });
-        objectStore.createIndex('category', 'category', { unique: false });
+        objectStore.createIndex('category', 'category', { unique: true });
       };
     });
   }
 
-  store(documentRecord: DocumentRecord): Promise<number> {
+  public store(documentRecord: DocumentRecord): Promise<number> {
     return blobToBuffer(documentRecord).then(
       (documentRecordForStorage) =>
         new Promise((resolve, reject) => {
@@ -85,7 +85,36 @@ export class Storage {
     );
   }
 
-  select(id: DocumentCategory): Promise<DocumentRecord | null> {
+  public delete(documentCategory: DocumentCategory): Promise<number> {
+    return new Promise((resolve, reject) => {
+      let deletionResult: number | undefined = -1;
+      const transaction = this.db?.transaction(Storage.STORE_NAME, 'readwrite');
+      if (!transaction) {
+        reject(new Error('Null transaction object'));
+        return;
+      }
+      transaction.oncomplete = (event) => {
+        if (deletionResult === null) {
+          reject(new Error('Null generated category'));
+          return;
+        }
+        resolve(deletionResult);
+      };
+      transaction.onerror = (event) => {
+        reject(event);
+      };
+      const store = transaction.objectStore(Storage.STORE_NAME);
+
+      const request = store.delete(documentCategory);
+      request.onsuccess = (event) => {
+        const request = event.target as IDBRequest;
+        deletionResult = request.result;
+        console.log('Request is success: ', request.result);
+      };
+    });
+  }
+
+  public select(id: DocumentCategory): Promise<DocumentRecord | null> {
     return new Promise<DocumentRecordForStorage | null>((resolve, reject) => {
       let imageRecord: DocumentRecordForStorage | null = null;
       const transaction = this.db?.transaction(Storage.STORE_NAME, 'readonly');
@@ -112,5 +141,52 @@ export class Storage {
       }
       return bufferToBlob(r);
     });
+  }
+
+  public count(): Promise<number> {
+    return new Promise((resolve, reject) => {
+      let count = 0;
+      const transaction = this.db?.transaction(Storage.STORE_NAME, 'readonly');
+      if (!transaction) {
+        reject(new Error('Null transaction object'));
+        return;
+      }
+      transaction.oncomplete = (event) => {
+        resolve(count);
+      };
+      transaction.onerror = (event) => {
+        reject(event);
+      };
+      const store = transaction.objectStore(Storage.STORE_NAME);
+      const request = store.count();
+      request.onsuccess = (event) => {
+        const request = event.target as IDBRequest;
+        count = request.result as number;
+        console.log('Request is success: ');
+      };
+    });
+  }
+
+  public iterate(cb: (id: DocumentCategory) => void): void {
+    const transaction = this.db?.transaction(Storage.STORE_NAME, 'readonly');
+    if (!transaction) {
+      console.log(new Error('Null transaction object'));
+      return;
+    }
+    transaction.oncomplete = (event) => {};
+    transaction.onerror = (event) => {
+      console.log(event);
+    };
+    const store = transaction.objectStore(Storage.STORE_NAME);
+    const request = store.openCursor();
+    request.onsuccess = (event) => {
+      const request = event.target as IDBRequest;
+      const cursor = request.result as IDBCursor;
+      if (cursor) {
+        cb(cursor.key as DocumentCategory);
+        cursor.continue();
+      }
+      console.log('Request is success: ');
+    };
   }
 }

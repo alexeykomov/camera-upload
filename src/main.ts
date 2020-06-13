@@ -34,7 +34,22 @@ const onChange = async (event: Event) => {
     file: firstFile,
     mimeType: firstFile.type,
   });
+  const res2 = await storage?.store({
+    category: DocumentCategory.W2,
+    name: firstFile.name,
+    file: firstFile,
+    mimeType: firstFile.type,
+  });
   console.log('res: ', res);
+
+  storage?.iterate((key) => {
+    console.log('Key: ', key);
+  })
+  const count = await storage?.count();
+  console.log('count: ', count);
+  await storage?.delete(DocumentCategory.W2);
+  const countAfterDelete = await storage?.count();
+  console.log('countAfterDelete: ', countAfterDelete);
 
   const record = await storage?.select(DocumentCategory.DriverLicense);
   console.log('record: ', record);
