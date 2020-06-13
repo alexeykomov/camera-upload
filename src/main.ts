@@ -1,6 +1,7 @@
 import { Storage } from './storage';
+import { DocumentCategory } from './DocumentRecord';
 
-let openedStorage: Promise<Storage> | null = null;
+let openingStorage: Promise<Storage> | null = null;
 
 const onChange = async (event: Event) => {
   const input = event.target as HTMLInputElement;
@@ -25,20 +26,25 @@ const onChange = async (event: Event) => {
     return;
   }
 
-  const blob = new Blob([firstFile], { type: firstFile.type });
-
-  const storage = await openedStorage;
+  const storage = await openingStorage;
 
   const res = await storage?.store({
+    category: DocumentCategory.DriverLicense,
     name: firstFile.name,
     file: firstFile,
+    mimeType: firstFile.type,
   });
   console.log('res: ', res);
 
-  const record = await storage?.select(1);
+  const record = await storage?.select(DocumentCategory.DriverLicense);
   console.log('record: ', record);
 
-  const imageUrl = URL.createObjectURL(blob);
+  if (!record) {
+    console.log('There is no record with such category: ', DocumentCategory.DriverLicense);
+    return;
+  }
+
+  const imageUrl = URL.createObjectURL(record.file);
   preview.src = imageUrl;
   preview.alt = `Uploaded image ${firstFile.name}`;
 };
@@ -49,7 +55,7 @@ const onLoad = async () => {
     return;
   }
   input.addEventListener('change', onChange);
-  openedStorage = Storage.open();
+  openingStorage = Storage.open();
 };
 
 document.addEventListener('DOMContentLoaded', onLoad);
