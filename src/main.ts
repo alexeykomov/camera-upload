@@ -34,7 +34,7 @@ const onChange = async (event: Event) => {
     file: firstFile,
     mimeType: firstFile.type,
   });
-  const res2 = await storage?.store({
+  await storage?.store({
     category: DocumentCategory.W2,
     name: firstFile.name,
     file: firstFile,
@@ -44,7 +44,7 @@ const onChange = async (event: Event) => {
 
   storage?.iterate((key) => {
     console.log('Key: ', key);
-  })
+  });
   const count = await storage?.count();
   console.log('count: ', count);
   await storage?.delete(DocumentCategory.W2);
@@ -55,7 +55,10 @@ const onChange = async (event: Event) => {
   console.log('record: ', record);
 
   if (!record) {
-    console.log('There is no record with such category: ', DocumentCategory.DriverLicense);
+    console.log(
+      'There is no record with such category: ',
+      DocumentCategory.DriverLicense
+    );
     return;
   }
 

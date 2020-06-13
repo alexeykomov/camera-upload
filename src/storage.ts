@@ -167,13 +167,18 @@ export class Storage {
     });
   }
 
-  public iterate(cb: (id: DocumentCategory) => void): void {
+  public iterate(
+    cb: (id: DocumentCategory, index: number, array: DocumentCategory[]) => void
+  ): void {
     const transaction = this.db?.transaction(Storage.STORE_NAME, 'readonly');
+    const keys: DocumentCategory[] = [];
     if (!transaction) {
       console.log(new Error('Null transaction object'));
       return;
     }
-    transaction.oncomplete = (event) => {};
+    transaction.oncomplete = (event) => {
+      keys.forEach(cb);
+    };
     transaction.onerror = (event) => {
       console.log(event);
     };
@@ -183,7 +188,7 @@ export class Storage {
       const request = event.target as IDBRequest;
       const cursor = request.result as IDBCursor;
       if (cursor) {
-        cb(cursor.key as DocumentCategory);
+        keys.push(cursor.key as DocumentCategory);
         cursor.continue();
       }
       console.log('Request is success: ');
