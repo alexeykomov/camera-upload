@@ -1,3 +1,5 @@
+Example project that includes uploading picture from input and displaying it with blob url.
+
 To start:
 
 1. `rollup -c`
